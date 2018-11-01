@@ -1,0 +1,68 @@
+name:                pixela
+version:             0.1.0.0
+github:              "kakkun61/pixela"
+license:             BSD3
+author:              "Kazuki Okamoto"
+maintainer:          "kazuki.okamoto@kakkun61.com"
+copyright:           "Kazuki Okamoto"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+synopsis:            Pixela client.
+category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Pixela client.
+
+dependencies:
+- base >= 4.7 && < 5
+- aeson
+- bytestring
+- data-default
+- optparse-declarative
+- http-client
+- http-client-tls
+- http-types
+- split
+- text
+- unordered-containers
+- uri-encode
+- vector
+
+library:
+  source-dirs: src
+  default-extensions: OverloadedStrings
+  ghc-options:
+  - -Wall
+  - -fwarn-tabs
+  - -fwarn-incomplete-record-updates
+  - -fwarn-unused-do-bind
+
+executables:
+  pixela:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -Wall
+    - -fwarn-tabs
+    - -fwarn-incomplete-record-updates
+    - -fwarn-unused-do-bind
+    dependencies:
+    - pixela
+
+tests:
+  pixela-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -Wall
+    - -fwarn-tabs
+    - -fwarn-incomplete-record-updates
+    - -fwarn-unused-do-bind
+    dependencies:
+    - pixela

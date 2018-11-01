@@ -1,0 +1,8 @@
+.stack-work/
+pixela.cabal
+*~
+
+.idea
+.vscode
+
+token
