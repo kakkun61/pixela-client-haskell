@@ -67,13 +67,13 @@ import qualified Network.URI.Encode as URI
 -- | Pixela client.
 --
 -- @
---   import Web.Pixela
---   import Data.Default (def)
+-- import Web.Pixela
+-- import Data.Default (def)
 --
---   main :: IO
---   main = do
---     client <- newClient def
---     pure ()
+-- main :: IO
+-- main = do
+--   _client <- newClient def
+--   pure ()
 -- @
 data Client =
   Client
@@ -100,28 +100,28 @@ data Exception =
 
 instance E.Exception Exception
 
--- | Type class to create value from @String@.
+-- | A type class to create a value from 'String'.
 class FromParameter a where
-  -- | If you know this is not fail, you can use @fromParameter'@.
+  -- | If you know this does not fail, you can use 'fromParameter''.
   fromParameter :: String -> Maybe a
 
--- | Create value from @String@.
--- This function is unsafe, apply @error@ if fail.
--- @fromParameter@ is safe.
+-- | Create value from 'String'.
+-- This function is unsafe, applys 'error' if fails.
+-- 'fromParameter' is safe.
 fromParameter' :: (FromParameter a) => String -> a
 fromParameter' param =
   case fromParameter param of
     Just a -> a
     Nothing -> error $ "pixela: error parsing \"" <> param <> "\""
 
--- | Type class to convert to @String@.
+-- | A type class to convert a value to 'String'.
 class ToParameter a where
   toParameter :: a -> String
 
 type Token = String
 type UserName = String
 
--- | Which to agree terms of service or not.
+-- | Which to agree <https://github.com/a-know/Pixela/wiki/Terms-of-Service terms of service> or not.
 data Agreement = Agree | Disagree deriving (Show, Read, Eq)
 
 -- | Major (adult) or minor (child).
