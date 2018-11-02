@@ -1,8 +1,10 @@
 .stack-work/
 pixela.cabal
+pixela-cli.cabal
 *~
 
 .idea
+*.iml
 .vscode
 
 token
