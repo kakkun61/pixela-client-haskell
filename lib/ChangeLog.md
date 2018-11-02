@@ -1,3 +1,5 @@
 # Changelog for pixela
 
-## Unreleased changes
+## 0.1.0.0
+
+First release.

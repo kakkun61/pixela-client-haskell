@@ -1,6 +1,7 @@
 name:                pixela
 version:             0.1.0.0
-github:              "kakkun61/pixela"
+github:              "kakkun61/pixela-client-haskell"
+homepage:            "https://github.com/kakkun61/pixela-client-haskell/tree/master/lib"
 license:             BSD3
 author:              "Kazuki Okamoto"
 maintainer:          "kazuki.okamoto@kakkun61.com"
@@ -17,7 +18,7 @@ category:            Web
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Pixela client.
+description:         Pixela (<https://pixe.la/>) client library.
 
 dependencies:
 - base >= 4.7 && < 5
