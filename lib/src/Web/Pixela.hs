@@ -84,8 +84,10 @@ data Client =
 -- | Client configuration.
 data Config =
   Config
-    { endPoint :: String
+    { endPoint :: Url
     , httpManagerSettings :: ManagerSettings
+    , userName :: UserName
+    , token :: Token
     }
 
 instance Default Config where
@@ -93,6 +95,8 @@ instance Default Config where
     Config
       "https://pixe.la/v1"
       tlsManagerSettings
+      ""
+      ""
 
 data Exception =
   JsonException String
@@ -200,22 +204,21 @@ type WebhookHash = String
 
 -- | Create new client.
 newClient :: Config -> IO Client
-newClient c = do
-  manager <- newManager $ httpManagerSettings c
-  pure $ Client c manager
+newClient c =
+  Client c <$> newManager (httpManagerSettings c)
 
 -- | Create a user.
 -- <https://pixe.la/#api-detail-post-users>
-createUser :: UserName -> Token -> Agreement -> Majority -> Client -> IO ()
-createUser userName token agreement majority (Client (Config ep _) manager) =
+createUser :: Agreement -> Majority -> Client -> IO ()
+createUser agreement majority (Client (Config ep _ userName' token') manager) =
   void $
     request
       POST
       (ep </> "users")
       Nothing
       ( Just $ Aeson.object
-          [ "token" .= token
-          , "username" .= userName
+          [ "token'" .= token'
+          , "username" .= userName'
           , "agreeTermsOfService" .= case agreement of Agree -> "yes"; Disagree -> "no" :: String
           , "notMinor" .= case majority of Major -> "yes"; Minor -> "no" :: String
           ]
@@ -224,37 +227,37 @@ createUser userName token agreement majority (Client (Config ep _) manager) =
 
 -- | Update user token.
 -- <https://pixe.la/#api-detail-put-user>
-updateToken :: UserName -> Token -> Token -> Client -> IO ()
-updateToken userName token newToken (Client (Config ep _) manager) =
+updateToken :: Token -> Client -> IO ()
+updateToken newToken (Client (Config ep _ userName' token') manager) =
   void $
     request
       PUT
-      (ep </> "users" </> URI.encode userName)
-      (Just token)
+      (ep </> "users" </> URI.encode userName')
+      (Just token')
       (Just $ Aeson.object ["newToken" .= newToken])
       manager
 
 -- | Delete the user.
 -- <https://pixe.la/#api-detail-delete-user>
-deleteUser :: UserName -> Token -> Client -> IO ()
-deleteUser userName token (Client (Config ep _) manager) =
+deleteUser :: Client -> IO ()
+deleteUser (Client (Config ep _ userName' token') manager) =
   void $
     request
       DELETE
-      (ep </> "users" </> URI.encode userName)
-      (Just token)
+      (ep </> "users" </> URI.encode userName')
+      (Just token')
       Nothing
       manager
 
 -- | Create a graph.
 -- <https://pixe.la/#api-detail-post-graphs>
-createGraph :: UserName -> Token -> GraphId -> GraphName -> GraphUnit -> GraphType -> GraphColor -> Client -> IO ()
-createGraph userName token graphId graphName graphUnit graphType graphColor (Client (Config ep _) manager) =
+createGraph :: GraphId -> GraphName -> GraphUnit -> GraphType -> GraphColor -> Client -> IO ()
+createGraph graphId graphName graphUnit graphType graphColor (Client (Config ep _ userName' token') manager) =
   void $
     request
       POST
-      (ep </> "users" </> URI.encode userName </> "graphs")
-      (Just token)
+      (ep </> "users" </> URI.encode userName' </> "graphs")
+      (Just token')
       ( Just $ Aeson.object
           [ "id" .= graphId
           , "name" .= graphName
@@ -267,28 +270,28 @@ createGraph userName token graphId graphName graphUnit graphType graphColor (Cli
 
 -- | Get the list of infomation of graphs.
 -- <https://pixe.la/#api-detail-get-graphs>
-getGraphs :: UserName -> Token -> Client -> IO Aeson.Value
-getGraphs userName token client =
-  getGraphsBSL userName token client >>= decodeJson
+getGraphs :: Client -> IO Aeson.Value
+getGraphs client =
+  getGraphsBSL client >>= decodeJson
 
 -- | Get the list of infomation of graphs.
 -- <https://pixe.la/#api-detail-get-graphs>
-getGraphsBSL :: UserName -> Token -> Client -> IO BSL.ByteString
-getGraphsBSL userName token (Client (Config ep _) manager) =
+getGraphsBSL :: Client -> IO BSL.ByteString
+getGraphsBSL (Client (Config ep _ userName' token') manager) =
   requestBSL
     GET
-    (ep </> "users" </> URI.encode userName </> "graphs")
-    (Just token)
+    (ep </> "users" </> URI.encode userName' </> "graphs")
+    (Just token')
     Nothing
     manager
 
 -- | Get the graph.
 -- <https://pixe.la/#api-detail-get-graph>
-getGraph :: UserName -> GraphId -> Maybe DateFormat -> DisplayMode -> Client -> IO BSL.ByteString
-getGraph userName graphId maybeFormat mode (Client (Config ep _) manager) =
+getGraph :: GraphId -> Maybe DateFormat -> DisplayMode -> Client -> IO BSL.ByteString
+getGraph graphId maybeFormat mode (Client (Config ep _ userName' _) manager) =
   requestBSL
     GET
-    (ep </> "users" </> URI.encode userName </> "graphs" </> URI.encode graphId)
+    (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId)
     Nothing
     ( case (mode, maybeFormat) of
         (DefaultMode, Nothing) -> Nothing
@@ -306,14 +309,14 @@ getGraph userName graphId maybeFormat mode (Client (Config ep _) manager) =
 
 -- | Update the graph.
 -- <https://pixe.la/#api-detail-put-graph>
-updateGraph :: UserName -> Token -> GraphId -> Maybe GraphName -> Maybe GraphUnit -> Maybe GraphColor -> [Url] -> Client -> IO ()
-updateGraph _ _ _ Nothing Nothing Nothing [] _ = pure ()
-updateGraph userName token graphId maybeGraphName maybeGraphUnit maybeGraphColor purgeCacheUrls (Client (Config ep _) manager) =
+updateGraph :: GraphId -> Maybe GraphName -> Maybe GraphUnit -> Maybe GraphColor -> [Url] -> Client -> IO ()
+updateGraph _ Nothing Nothing Nothing [] _ = pure ()
+updateGraph graphId maybeGraphName maybeGraphUnit maybeGraphColor purgeCacheUrls (Client (Config ep _ userName' token') manager) =
   void $
     request
       PUT
-      (ep </> "users" </> URI.encode userName </> "graphs" </> URI.encode graphId)
-      (Just token)
+      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId)
+      (Just token')
       ( Just $ Aeson.object $
           case maybeGraphName of
             Just graphName -> ["name" .= Aeson.String (Text.pack graphName)]
@@ -335,25 +338,25 @@ updateGraph userName token graphId maybeGraphName maybeGraphUnit maybeGraphColor
 
 -- | Delete the graph.
 -- <https://pixe.la/#api-detail-delete-graph>
-deleteGraph :: UserName -> Token -> GraphId -> Client -> IO ()
-deleteGraph userName token graphId (Client (Config ep _) manager) =
+deleteGraph :: GraphId -> Client -> IO ()
+deleteGraph graphId (Client (Config ep _ userName' token') manager) =
   void $
     request
       DELETE
-      (ep </> "users" </> URI.encode userName </> "graphs" </> URI.encode graphId)
-      (Just token)
+      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId)
+      (Just token')
       Nothing
       manager
 
 -- | Set quantity pixel.
 -- <https://pixe.la/#api-detail-post-pixels>
-setQuantity :: UserName -> Token -> GraphId -> Date -> Quantity -> Client -> IO ()
-setQuantity userName token graphId date quantity (Client (Config ep _) manager) =
+setQuantity :: GraphId -> Date -> Quantity -> Client -> IO ()
+setQuantity graphId date quantity (Client (Config ep _ userName' token') manager) =
   void $
     request
       POST
-      (ep </> "users" </> URI.encode userName </> "graphs" </> URI.encode graphId)
-      (Just token)
+      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId)
+      (Just token')
       ( Just $ Aeson.object
           [ "date" .= date
           , "quantity" .= quantity
@@ -363,78 +366,78 @@ setQuantity userName token graphId date quantity (Client (Config ep _) manager) 
 
 -- | Get quantity pixel.
 -- <https://pixe.la/#api-detail-get-pixel>
-getQuantity :: UserName -> Token -> GraphId -> Date -> Client -> IO Aeson.Value
-getQuantity userName token graphId date client =
-  getQuantityBSL userName token graphId date client >>= decodeJson
+getQuantity :: GraphId -> Date -> Client -> IO Aeson.Value
+getQuantity graphId date client =
+  getQuantityBSL graphId date client >>= decodeJson
 
 -- | Get quantity pixel.
 -- <https://pixe.la/#api-detail-get-pixel>
-getQuantityBSL :: UserName -> Token -> GraphId -> Date -> Client -> IO BSL.ByteString
-getQuantityBSL userName token graphId date (Client (Config ep _) manager) =
+getQuantityBSL :: GraphId -> Date -> Client -> IO BSL.ByteString
+getQuantityBSL graphId date (Client (Config ep _ userName' token') manager) =
   requestBSL
     GET
-    (ep </> "users" </> URI.encode userName </> "graphs" </> URI.encode graphId </> URI.encode date)
-    (Just token)
+    (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode date)
+    (Just token')
     Nothing
     manager
 
 -- | Update quantity pixel.
 -- <https://pixe.la/#api-detail-put-pixel>
-updateQuantity :: UserName -> Token -> GraphId -> Date -> Quantity -> Client -> IO ()
-updateQuantity userName token graphId date quantity (Client (Config ep _) manager) =
+updateQuantity :: GraphId -> Date -> Quantity -> Client -> IO ()
+updateQuantity graphId date quantity (Client (Config ep _ userName' token') manager) =
   void $
     request
       PUT
-      (ep </> "users" </> URI.encode userName </> "graphs" </> URI.encode graphId </> URI.encode date)
-      (Just token)
+      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode date)
+      (Just token')
       (Just $ Aeson.object ["quantity" .= quantity])
       manager
 
 -- | Increment quantity pixel.
 -- <https://pixe.la/#api-detail-pixel-increment>
-incrementQuantity :: UserName -> Token -> GraphId -> Client -> IO ()
-incrementQuantity userName token graphId (Client (Config ep _) manager) =
+incrementQuantity :: GraphId -> Client -> IO ()
+incrementQuantity graphId (Client (Config ep _ userName' token') manager) =
   void $
     request
       PUT
-      (ep </> "users" </> URI.encode userName </> "graphs" </> URI.encode graphId </> "increment")
-      (Just token)
+      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> "increment")
+      (Just token')
       Nothing
       manager
 
 -- | Decrement quantity pixel.
 -- <https://pixe.la/#api-detail-pixel-decrement>
-decrementQuantity :: UserName -> Token -> GraphId -> Client -> IO ()
-decrementQuantity userName token graphId (Client (Config ep _) manager) =
+decrementQuantity :: GraphId -> Client -> IO ()
+decrementQuantity graphId (Client (Config ep _ userName' token') manager) =
   void $
     request
       PUT
-      (ep </> "users" </> URI.encode userName </> "graphs" </> URI.encode graphId </> "decrement")
-      (Just token)
+      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> "decrement")
+      (Just token')
       Nothing
       manager
 
 -- | Delete quantity pixel.
 -- <https://pixe.la/#api-detail-delete-pixel>
-deleteQuantity :: UserName -> Token -> GraphId -> Date -> Client -> IO ()
-deleteQuantity userName token graphId date (Client (Config ep _) manager) =
+deleteQuantity :: GraphId -> Date -> Client -> IO ()
+deleteQuantity graphId date (Client (Config ep _ userName' token') manager) =
   void $
     request
       DELETE
-      (ep </> "users" </> URI.encode userName </> "graphs" </> URI.encode graphId </> URI.encode date)
-      (Just token)
+      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode date)
+      (Just token')
       Nothing
       manager
 
 -- | Create a webhook.
 -- <https://pixe.la/#api-detail-post-webhooks>
-createWebhook :: UserName -> Token -> GraphId -> WebhookType -> Client -> IO Text
-createWebhook userName token graphId type' (Client (Config ep _) manager) = do
+createWebhook :: GraphId -> WebhookType -> Client -> IO Text
+createWebhook graphId type' (Client (Config ep _ userName' token') manager) = do
   response <-
     request
       POST
-      (ep </> "users" </> URI.encode userName </> "webhooks")
-      (Just token)
+      (ep </> "users" </> URI.encode userName' </> "webhooks")
+      (Just token')
       ( Just $ Aeson.object
           [ "graphID" .= graphId
           , "type" .= toParameter type'
@@ -452,42 +455,42 @@ createWebhook userName token graphId type' (Client (Config ep _) manager) = do
 
 -- | Get the webhook.
 -- <https://pixe.la/#api-detail-get-webhooks>
-getWebhooks :: UserName -> Token -> Client -> IO Aeson.Value
-getWebhooks userName token client =
-  getWebhooksBSL userName token client >>= decodeJson
+getWebhooks :: Client -> IO Aeson.Value
+getWebhooks client =
+  getWebhooksBSL client >>= decodeJson
 
 -- | Get the webhook.
 -- <https://pixe.la/#api-detail-get-webhooks>
-getWebhooksBSL :: UserName -> Token -> Client -> IO BSL.ByteString
-getWebhooksBSL userName token (Client (Config ep _) manager) =
+getWebhooksBSL :: Client -> IO BSL.ByteString
+getWebhooksBSL (Client (Config ep _ userName' token') manager) =
   requestBSL
     GET
-    (ep </> "users" </> URI.encode userName </> "webhooks")
-    (Just token)
+    (ep </> "users" </> URI.encode userName' </> "webhooks")
+    (Just token')
     Nothing
     manager
 
 -- | Invoke the webhook.
 -- <https://pixe.la/#api-detail-post-webhook>
-invokeWebhook :: UserName -> WebhookHash -> Client -> IO ()
-invokeWebhook userName hash (Client (Config ep _) manager) =
+invokeWebhook :: WebhookHash -> Client -> IO ()
+invokeWebhook hash (Client (Config ep _ userName' _) manager) =
   void $
     request
       POST
-      (ep </> "users" </> URI.encode userName </> "webhooks" </> URI.encode hash)
+      (ep </> "users" </> URI.encode userName' </> "webhooks" </> URI.encode hash)
       Nothing
       Nothing
       manager
 
 -- | Delete the webhook.
 -- <https://pixe.la/#api-detail-delete-webhook>
-deleteWebhook :: UserName -> Token -> WebhookHash -> Client -> IO ()
-deleteWebhook userName token hash (Client (Config ep _) manager) =
+deleteWebhook :: WebhookHash -> Client -> IO ()
+deleteWebhook hash (Client (Config ep _ userName' token') manager) =
   void $
     request
       DELETE
-      (ep </> "users" </> URI.encode userName </> "webhooks" </> URI.encode hash)
-      (Just token)
+      (ep </> "users" </> URI.encode userName' </> "webhooks" </> URI.encode hash)
+      (Just token')
       Nothing
       manager
 
@@ -506,7 +509,7 @@ requestBSL method' uri maybeToken maybeBody manager = do
             [("User-Agent", "Pixela Haskell Client " <> version)]
             ++
             case maybeToken of
-              Just token -> [("X-USER-TOKEN", BS.pack token)]
+              Just token' -> [("X-USER-TOKEN", BS.pack token')]
               Nothing -> []
         , requestBody =
             RequestBodyLBS $

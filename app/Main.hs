@@ -8,7 +8,7 @@ import Data.Default
 import Data.List.Split (splitOn)
 import qualified Data.Text.IO as Text
 import Options.Declarative
-import Web.Pixela (Agreement (..), Majority (..), DisplayMode (..), version, newClient, fromParameter')
+import Web.Pixela (Config (userName, token), Agreement (..), Majority (..), DisplayMode (..), version, newClient, fromParameter')
 import qualified Web.Pixela as P
 
 main :: IO ()
@@ -41,29 +41,29 @@ createUser
   -> Arg "USER_NAME" String
   -> Arg "NEW_TOKEN" String
   -> Cmd "create a new user" ()
-createUser agreement majority userName token =
-  liftIO $ do
-    client <- newClient def
-    P.createUser (get userName) (get token) (if get agreement then Agree else Disagree) (if get majority then Major else Minor) client
+createUser agreement majority userName' token' =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.createUser (if get agreement then Agree else Disagree) (if get majority then Major else Minor)
 
 updateToken
   :: Arg "USER_NAME" String
   -> Arg "TOKEN" String
   -> Arg "NEW_TOKEN" String
   -> Cmd "update the token" ()
-updateToken userName token newToken =
-  liftIO $ do
-    client <- newClient def
-    P.updateToken (get userName) (get token) (get newToken) client
+updateToken userName' token' newToken =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.updateToken (get newToken)
 
 deleteUser
   :: Arg "USER_NAME" String
   -> Arg "TOKEN" String
   -> Cmd "delete the user" ()
-deleteUser userName token =
-  liftIO $ do
-    client <- newClient def
-    P.deleteUser (get userName) (get token) client
+deleteUser userName' token' =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.deleteUser
 
 createGraph
   :: Arg "USER_NAME" String
@@ -74,19 +74,19 @@ createGraph
   -> Arg "GRAPH_TYPE" String
   -> Arg "GRAPH_COLOR" String
   -> Cmd "create a graph" ()
-createGraph userName token graphId graphName graphUnit graphType graphColor =
-  liftIO $ do
-    client <- newClient def
-    P.createGraph (get userName) (get token) (get graphId) (get graphName) (get graphUnit) (fromParameter' $ get graphType) (fromParameter' $ get graphColor) client
+createGraph userName' token' graphId graphName graphUnit graphType graphColor =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.createGraph (get graphId) (get graphName) (get graphUnit) (fromParameter' $ get graphType) (fromParameter' $ get graphColor)
 
 getGraphs
   :: Arg "USER_NAME" String
   -> Arg "TOKEN" String
   -> Cmd "list up own graphs" ()
-getGraphs userName token =
-  liftIO $ do
-    client <- newClient def
-    P.getGraphsBSL (get userName) (get token) client >>= BSL.putStrLn
+getGraphs userName' token' =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.getGraphsBSL >>= BSL.putStrLn
     
 getGraph
   :: Flag "d" '["date"] "FORMAT" "date format like \"yyyyMMdd\"" (Maybe String)
@@ -94,18 +94,16 @@ getGraph
   -> Arg "USER_NAME" String
   -> Arg "GRAPH_ID" String
   -> Cmd "get the graph SVG" ()
-getGraph maybeFormat short userName graphId =
-  liftIO $ do
-    client <- newClient def
-    P.getGraph
-      (get userName)
+getGraph maybeFormat short userName' graphId =
+  liftIO $
+    newClient def { userName = get userName' }
+    >>= P.getGraph
       (get graphId)
       (get maybeFormat)
       ( if get short
           then ShortMode
           else DefaultMode
       )
-      client
     >>= BSL.putStrLn
 
 updateGraph
@@ -117,25 +115,26 @@ updateGraph
   -> Arg "TOKEN" String
   -> Arg "GRAPH_ID" String
   -> Cmd "update the graph" ()
-updateGraph maybeGraphName maybeGraphUnit maybeGraphColor purgeCacheUrls userName token graphId =
-  liftIO $ do
-    client <- newClient def
+updateGraph maybeGraphName maybeGraphUnit maybeGraphColor purgeCacheUrls userName' token' graphId =
+  liftIO $
     let
       urls = 
         case splitOn "," $ get purgeCacheUrls of
           [""] -> []
           urls' -> urls'
-    P.updateGraph (get userName) (get token) (get graphId) (get maybeGraphName) (get maybeGraphUnit) (fromParameter' <$> get maybeGraphColor) urls client
+    in
+      newClient def { userName = get userName', token = get token' }
+      >>= P.updateGraph (get graphId) (get maybeGraphName) (get maybeGraphUnit) (fromParameter' <$> get maybeGraphColor) urls
 
 deleteGraph
   :: Arg "USER_NAME" String
   -> Arg "TOKEN" String
   -> Arg "GRAPH_ID" String
   -> Cmd "delete the graph" ()
-deleteGraph userName token graphId =
-  liftIO $ do
-    client <- newClient def
-    P.deleteGraph (get userName) (get token) (get graphId) client
+deleteGraph userName' token' graphId =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.deleteGraph (get graphId)
 
 setQuantity
   :: Arg "USER_NAME" String
@@ -144,10 +143,10 @@ setQuantity
   -> Arg "DATE" String
   -> Arg "QUANTITY" String
   -> Cmd "set the quantity of the specified date" ()
-setQuantity userName token graphId date quantity =
-  liftIO $ do
-    client <- newClient def
-    P.setQuantity (get userName) (get token) (get graphId) (get date) (get quantity) client
+setQuantity userName' token' graphId date quantity =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.setQuantity (get graphId) (get date) (get quantity)
 
 getQuantity
   :: Arg "USER_NAME" String
@@ -155,10 +154,10 @@ getQuantity
   -> Arg "GRAPH_ID" String
   -> Arg "DATE" String
   -> Cmd "get the quantity of the specified date" ()
-getQuantity userName token graphId date =
-  liftIO $ do
-    client <- newClient def
-    P.getQuantityBSL (get userName) (get token) (get graphId) (get date) client
+getQuantity userName' token' graphId date =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.getQuantityBSL (get graphId) (get date)
     >>= BSL.putStrLn
 
 updateQuantity
@@ -168,30 +167,30 @@ updateQuantity
   -> Arg "DATE" String
   -> Arg "QUANTITY" String
   -> Cmd "update the quantity of the specified date" ()
-updateQuantity userName token graphId date quantity =
-  liftIO $ do
-    client <- newClient def
-    P.updateQuantity (get userName) (get token) (get graphId) (get date) (get quantity) client
+updateQuantity userName' token' graphId date quantity =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.updateQuantity (get graphId) (get date) (get quantity)
 
 incrementQuantity
   :: Arg "USER_NAME" String
   -> Arg "TOKEN" String
   -> Arg "GRAPH_ID" String
   -> Cmd "increment the quantity of the specified date" ()
-incrementQuantity userName token graphId =
-  liftIO $ do
-    client <- newClient def
-    P.incrementQuantity (get userName) (get token) (get graphId) client
+incrementQuantity userName' token' graphId =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.incrementQuantity (get graphId)
 
 decrementQuantity
   :: Arg "USER_NAME" String
   -> Arg "TOKEN" String
   -> Arg "GRAPH_ID" String
   -> Cmd "decrement the quantity of the specified date" ()
-decrementQuantity userName token graphId =
-  liftIO $ do
-    client <- newClient def
-    P.decrementQuantity (get userName) (get token) (get graphId) client
+decrementQuantity userName' token' graphId =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.decrementQuantity (get graphId)
 
 deleteQuantity
   :: Arg "USER_NAME" String
@@ -199,10 +198,10 @@ deleteQuantity
   -> Arg "GRAPH_ID" String
   -> Arg "DATE" String
   -> Cmd "update the quantity of the specified date" ()
-deleteQuantity userName token graphId date =
-  liftIO $ do
-    client <- newClient def
-    P.deleteQuantity (get userName) (get token) (get graphId) (get date) client
+deleteQuantity userName' token' graphId date =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.deleteQuantity (get graphId) (get date)
 
 createWebhook
   :: Arg "USER_NAME" String
@@ -210,37 +209,37 @@ createWebhook
   -> Arg "GRAPH_ID" String
   -> Arg "TYPE" String
   -> Cmd "create a new webhook" ()
-createWebhook userName token graphId type' =
-  liftIO $ do
-    client <- newClient def
-    P.createWebhook (get userName) (get token) (get graphId) (fromParameter' $ get type') client
+createWebhook userName' token' graphId type' =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.createWebhook (get graphId) (fromParameter' $ get type')
     >>= Text.putStrLn
 
 getWebhooks
   :: Arg "USER_NAME" String
   -> Arg "TOKEN" String
   -> Cmd "get webhooks" ()
-getWebhooks userName token =
-  liftIO $ do
-    client <- newClient def
-    P.getWebhooksBSL (get userName) (get token) client
+getWebhooks userName' token' =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.getWebhooksBSL
     >>= BSL.putStrLn
 
 invokeWebhook
   :: Arg "USER_NAME" String
   -> Arg "WEBHOOK_HASH" String
   -> Cmd "get webhooks" ()
-invokeWebhook userName hash =
-  liftIO $ do
-    client <- newClient def
-    P.invokeWebhook (get userName) (get hash) client
+invokeWebhook userName' hash =
+  liftIO $
+    newClient def { userName = get userName' }
+    >>= P.invokeWebhook (get hash)
 
 deleteWebhook
   :: Arg "USER_NAME" String
   -> Arg "TOKEN" String
   -> Arg "WEBHOOK_HASH" String
   -> Cmd "delete the webhook" ()
-deleteWebhook userName token hash =
-  liftIO $ do
-    client <- newClient def
-    P.deleteWebhook (get userName) (get token) (get hash) client
+deleteWebhook userName' token' hash =
+  liftIO $
+    newClient def { userName = get userName', token = get token' }
+    >>= P.deleteWebhook (get hash)
