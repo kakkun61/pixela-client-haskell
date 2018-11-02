@@ -7,6 +7,8 @@ module Web.Pixela
   , FromParameter (..)
   , fromParameter'
   , ToParameter (..)
+  , Token
+  , UserName
   , Agreement (..)
   , Majority (..)
   , GraphId
@@ -16,6 +18,11 @@ module Web.Pixela
   , GraphColor (..)
   , DateFormat
   , DisplayMode (..)
+  , Url
+  , Date
+  , Quantity
+  , WebhookType
+  , WebhookHash
     -- * Constants
   , version
     -- * User functions
