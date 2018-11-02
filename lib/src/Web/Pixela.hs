@@ -61,6 +61,7 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.ByteString.Char8 as BS
 import Data.Default
 import qualified Data.HashMap.Strict as HashMap
+import Data.Maybe (fromMaybe)
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as Text
@@ -105,7 +106,7 @@ instance Default Config where
       ""
       ""
 
-data Exception =
+newtype Exception =
   JsonException String
   deriving (Show, Eq, Typeable)
 
@@ -121,9 +122,9 @@ class FromParameter a where
 -- 'fromParameter' is safe.
 fromParameter' :: (FromParameter a) => String -> a
 fromParameter' param =
-  case fromParameter param of
-    Just a -> a
-    Nothing -> error $ "pixela: error parsing \"" <> param <> "\""
+  fromMaybe
+    (error $ "pixela: error parsing \"" <> param <> "\"")
+    (fromParameter param)
 
 -- | A type class to convert a value to 'String'.
 class ToParameter a where
@@ -513,8 +514,7 @@ requestBSL method' uri maybeToken maybeBody manager = do
       request'
         { method = renderStdMethod method'
         , requestHeaders =
-            [("User-Agent", "Pixela Haskell Client " <> version)]
-            ++
+            ("User-Agent", "Pixela Haskell Client " <> version) :
             case maybeToken of
               Just token' -> [("X-USER-TOKEN", BS.pack token')]
               Nothing -> []
@@ -526,10 +526,10 @@ requestBSL method' uri maybeToken maybeBody manager = do
         }
   response <- httpLbs request'' manager
   pure $ responseBody response
-        
+
 decodeJson :: BSL.ByteString -> IO Aeson.Value
 decodeJson responseBody' =
-  case Aeson.decode $ responseBody' of
+  case Aeson.decode responseBody' of
     Nothing -> throwIO $ JsonException "failed to parse response body as JSON"
     Just b -> pure b
 
