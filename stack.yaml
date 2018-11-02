@@ -34,7 +34,8 @@ resolver: lts-12.14
 #  - auto-update
 #  - wai
 packages:
-- .
+- app
+- lib
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # using the same syntax as the packages field.
