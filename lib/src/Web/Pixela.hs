@@ -52,25 +52,25 @@ module Web.Pixela
   , deleteWebhook
   ) where
 
-import Control.Exception hiding (Exception)
-import qualified Control.Exception as E (Exception)
-import Control.Monad
-import Data.Aeson ((.=))
-import qualified Data.Aeson as Aeson
+import           Control.Exception          hiding (Exception)
+import qualified Control.Exception          as E (Exception)
+import           Control.Monad
+import           Data.Aeson                 ((.=))
+import qualified Data.Aeson                 as Aeson
+import qualified Data.ByteString.Char8      as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
-import qualified Data.ByteString.Char8 as BS
-import Data.Default
-import qualified Data.HashMap.Strict as HashMap
-import Data.Maybe (fromMaybe)
-import Data.String
-import Data.Text (Text)
-import qualified Data.Text as Text
-import Data.Typeable
-import qualified Data.Vector as Vector
-import Network.HTTP.Client
-import Network.HTTP.Client.TLS
-import Network.HTTP.Types
-import qualified Network.URI.Encode as URI
+import           Data.Default
+import qualified Data.HashMap.Strict        as HashMap
+import           Data.Maybe                 (fromMaybe)
+import           Data.String
+import           Data.Text                  (Text)
+import qualified Data.Text                  as Text
+import           Data.Typeable
+import qualified Data.Vector                as Vector
+import           Network.HTTP.Client
+import           Network.HTTP.Client.TLS
+import           Network.HTTP.Types
+import qualified Network.URI.Encode         as URI
 
 -- | Pixela client.
 --
@@ -85,17 +85,17 @@ import qualified Network.URI.Encode as URI
 -- @
 data Client =
   Client
-    { config :: Config
+    { config       :: Config
     , _httpManager :: Manager
     }
 
 -- | Client configuration.
 data Config =
   Config
-    { endPoint :: Url
+    { endPoint            :: Url
     , httpManagerSettings :: ManagerSettings
-    , userName :: UserName
-    , token :: Token
+    , userName            :: UserName
+    , token               :: Token
     }
 
 instance Default Config where
@@ -146,12 +146,12 @@ type GraphUnit = String
 data GraphType = GraphTypeInt | GraphTypeFloat deriving (Show, Read, Eq)
 
 instance FromParameter GraphType where
-  fromParameter "int" = Just GraphTypeInt
+  fromParameter "int"   = Just GraphTypeInt
   fromParameter "float" = Just GraphTypeFloat
-  fromParameter _ = Nothing
+  fromParameter _       = Nothing
 
 instance ToParameter GraphType where
-  toParameter GraphTypeInt = "int"
+  toParameter GraphTypeInt   = "int"
   toParameter GraphTypeFloat = "float"
 
 data GraphColor
@@ -165,20 +165,20 @@ data GraphColor
 
 instance FromParameter GraphColor where
   fromParameter "shibafu" = Just Shibafu
-  fromParameter "momiji" = Just Momiji
-  fromParameter "sora" = Just Sora
-  fromParameter "ichou" = Just Ichou
-  fromParameter "ajisai" = Just Ajisai
-  fromParameter "kuro" = Just Kuro
-  fromParameter _ = Nothing
+  fromParameter "momiji"  = Just Momiji
+  fromParameter "sora"    = Just Sora
+  fromParameter "ichou"   = Just Ichou
+  fromParameter "ajisai"  = Just Ajisai
+  fromParameter "kuro"    = Just Kuro
+  fromParameter _         = Nothing
 
 instance ToParameter GraphColor where
   toParameter Shibafu = "shibafu"
-  toParameter Momiji = "momiji"
-  toParameter Sora = "sora"
-  toParameter Ichou = "ichou"
-  toParameter Ajisai = "ajisai"
-  toParameter Kuro = "kuro"
+  toParameter Momiji  = "momiji"
+  toParameter Sora    = "sora"
+  toParameter Ichou   = "ichou"
+  toParameter Ajisai  = "ajisai"
+  toParameter Kuro    = "kuro"
 
 type DateFormat = String
 
@@ -186,11 +186,11 @@ data DisplayMode = ShortMode | DefaultMode deriving (Show, Read, Eq)
 
 instance FromParameter DisplayMode where
   fromParameter "short" = Just ShortMode
-  fromParameter "" = Just DefaultMode
-  fromParameter _ = Nothing
+  fromParameter ""      = Just DefaultMode
+  fromParameter _       = Nothing
 
 instance ToParameter DisplayMode where
-  toParameter ShortMode = "short"
+  toParameter ShortMode   = "short"
   toParameter DefaultMode = ""
 
 type Url = String
@@ -202,7 +202,7 @@ data WebhookType = Increment | Decrement deriving (Show, Read, Eq)
 instance FromParameter WebhookType where
   fromParameter "increment" = Just Increment
   fromParameter "decrement" = Just Decrement
-  fromParameter _ = Nothing
+  fromParameter _           = Nothing
 
 instance ToParameter WebhookType where
   toParameter Increment = "increment"
@@ -306,12 +306,12 @@ getGraph graphId maybeFormat mode (Client (Config ep _ userName' _) manager) =
         _ ->
           Just $ Aeson.object $
             case mode of
-              ShortMode -> ["mode" .= toParameter mode]
+              ShortMode   -> ["mode" .= toParameter mode]
               DefaultMode -> []
             ++
             case maybeFormat of
               Just format -> ["date" .= format]
-              Nothing -> []
+              Nothing     -> []
     )
     manager
 
@@ -328,19 +328,19 @@ updateGraph graphId maybeGraphName maybeGraphUnit maybeGraphColor purgeCacheUrls
       ( Just $ Aeson.object $
           case maybeGraphName of
             Just graphName -> ["name" .= Aeson.String (Text.pack graphName)]
-            Nothing -> []
+            Nothing        -> []
           ++
           case maybeGraphUnit of
             Just graphUnit -> ["unit" .= Aeson.String (Text.pack graphUnit)]
-            Nothing -> []
+            Nothing        -> []
           ++
           case maybeGraphColor of
             Just graphColor -> ["color" .= Aeson.String (Text.pack $ toParameter graphColor)]
-            Nothing -> []
+            Nothing         -> []
           ++
           case purgeCacheUrls of
             _:_ -> ["purgeCacheURLs" .= Aeson.Array (Vector.fromList $ map (Aeson.String . Text.pack) purgeCacheUrls)]
-            [] -> []
+            []  -> []
       )
       manager
 
@@ -458,7 +458,7 @@ createWebhook graphId type' (Client (Config ep _ userName' token') manager) = do
     Aeson.Object o ->
       case HashMap.lookup "webhookHash" o of
         Just (Aeson.String hashString) -> pure hashString
-        _ -> throw'
+        _                              -> throw'
     _ -> throw'
 
 -- | Get the webhook.
@@ -517,12 +517,12 @@ requestBSL method' uri maybeToken maybeBody manager = do
             ("User-Agent", "Pixela Haskell Client " <> version) :
             case maybeToken of
               Just token' -> [("X-USER-TOKEN", BS.pack token')]
-              Nothing -> []
+              Nothing     -> []
         , requestBody =
             RequestBodyLBS $
               case maybeBody of
                 Just body -> Aeson.encode body
-                Nothing -> ""
+                Nothing   -> ""
         }
   response <- httpLbs request'' manager
   pure $ responseBody response
@@ -531,7 +531,7 @@ decodeJson :: BSL.ByteString -> IO Aeson.Value
 decodeJson responseBody' =
   case Aeson.decode responseBody' of
     Nothing -> throwIO $ JsonException "failed to parse response body as JSON"
-    Just b -> pure b
+    Just b  -> pure b
 
 (</>) :: (Semigroup p, IsString p) => p -> p -> p
 p </> q = p <> "/" <> q

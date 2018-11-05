@@ -2,14 +2,15 @@
 
 module Main where
 
-import Control.Monad.IO.Class
+import           Control.Monad.IO.Class
 import qualified Data.ByteString.Lazy.Char8 as BSL
-import Data.Default
-import Data.List.Split (splitOn)
-import qualified Data.Text.IO as Text
-import Options.Declarative
-import Web.Pixela (Config (userName, token), Agreement (..), Majority (..), DisplayMode (..), version, newClient, fromParameter')
-import qualified Web.Pixela as P
+import           Data.Default
+import           Data.List.Split            (splitOn)
+import qualified Data.Text.IO               as Text
+import           Options.Declarative
+import           Web.Pixela                 (Agreement (..), Config (token, userName), DisplayMode (..), Majority (..),
+                                             fromParameter', newClient, version)
+import qualified Web.Pixela                 as P
 
 main :: IO ()
 main =
@@ -87,7 +88,7 @@ getGraphs userName' token' =
   liftIO $
     newClient def { userName = get userName', token = get token' }
     >>= P.getGraphsBSL >>= BSL.putStrLn
-    
+
 getGraph
   :: Flag "d" '["date"] "FORMAT" "date format like \"yyyyMMdd\"" (Maybe String)
   -> Flag "s" '["short"] "" "short mode or not" Bool
@@ -118,9 +119,9 @@ updateGraph
 updateGraph maybeGraphName maybeGraphUnit maybeGraphColor purgeCacheUrls userName' token' graphId =
   liftIO $
     let
-      urls = 
+      urls =
         case splitOn "," $ get purgeCacheUrls of
-          [""] -> []
+          [""]  -> []
           urls' -> urls'
     in
       newClient def { userName = get userName', token = get token' }
