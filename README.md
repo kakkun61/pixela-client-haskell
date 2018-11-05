@@ -15,3 +15,7 @@ Refer [app/README.md](app/README.md).
 _lib_ directory is for the library.
 
 Refer [lib/README.md](lib/README.md).
+
+## Support
+
+This supports new 3 major releases of GHC.

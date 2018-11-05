@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 module Web.Pixela
   ( -- * Types
     Client (config)
@@ -60,6 +62,9 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Data.Default
 import qualified Data.HashMap.Strict        as HashMap
 import           Data.Maybe                 (fromMaybe)
+#if __GLASGOW_HASKELL__ < 804
+import           Data.Semigroup             (Semigroup, (<>))
+#endif
 import           Data.String
 import           Data.Text                  (Text)
 import qualified Data.Text                  as Text
