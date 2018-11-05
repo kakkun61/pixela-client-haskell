@@ -232,7 +232,7 @@ getWebhooks userName' token' =
 invokeWebhook
   :: Arg "USER_NAME" String
   -> Arg "WEBHOOK_HASH" String
-  -> Cmd "get webhooks" ()
+  -> Cmd "invoke the webhook" ()
 invokeWebhook userName' hash =
   liftIO $
     newClient def { userName = get userName' }
