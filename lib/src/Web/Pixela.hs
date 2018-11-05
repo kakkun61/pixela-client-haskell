@@ -23,8 +23,6 @@ module Web.Pixela
   , Quantity
   , WebhookType
   , WebhookHash
-    -- * Constants
-  , version
     -- * User functions
   , createUser
   , updateToken
@@ -67,10 +65,13 @@ import           Data.Text                  (Text)
 import qualified Data.Text                  as Text
 import           Data.Typeable
 import qualified Data.Vector                as Vector
+import           Data.Version               (showVersion)
 import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
 import           Network.HTTP.Types
 import qualified Network.URI.Encode         as URI
+
+import           Paths_pixela               (version)
 
 -- | Pixela client.
 --
@@ -514,7 +515,7 @@ requestBSL method' uri maybeToken maybeBody manager = do
       request'
         { method = renderStdMethod method'
         , requestHeaders =
-            ("User-Agent", "Pixela Haskell Client " <> version) :
+            ("User-Agent", "Pixela Haskell Client " <> BS.pack (showVersion version)) :
             case maybeToken of
               Just token' -> [("X-USER-TOKEN", BS.pack token')]
               Nothing     -> []
@@ -536,6 +537,3 @@ decodeJson responseBody' =
 (</>) :: (Semigroup p, IsString p) => p -> p -> p
 p </> q = p <> "/" <> q
 infixr 6 </>
-
-version :: (IsString a) => a
-version = "1.0.0"

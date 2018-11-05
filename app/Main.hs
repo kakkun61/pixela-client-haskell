@@ -7,14 +7,17 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import           Data.Default
 import           Data.List.Split            (splitOn)
 import qualified Data.Text.IO               as Text
+import           Data.Version               (showVersion)
 import           Options.Declarative
 import           Web.Pixela                 (Agreement (..), Config (token, userName), DisplayMode (..), Majority (..),
-                                             fromParameter', newClient, version)
+                                             fromParameter', newClient)
 import qualified Web.Pixela                 as P
+
+import           Paths_pixela_cli           (version)
 
 main :: IO ()
 main =
-  run "pixela" (Just version) $
+  run "pixela-cli" (Just $ showVersion version) $
     Group "Pixela client"
       [ subCmd "create-user" createUser
       , subCmd "update-token" updateToken
