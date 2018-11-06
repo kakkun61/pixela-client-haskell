@@ -4,13 +4,15 @@ cache:
   directories:
   - "$HOME/.stack/"
   - "$HOME/.local/bin/"
-  - ".stack-work/"
+  timeout: 720
 before_install:
 - mkdir -p ~/.local/bin
 - export PATH=$HOME/.local/bin:$PATH
 - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 install:
 - stack --no-terminal test --only-dependencies
+- stack --stack-yaml stack.ghc-8.2.yaml --no-terminal test --only-dependencies
+- stack --stack-yaml stack.ghc-8.0.yaml --no-terminal test --only-dependencies
 jobs:
   include:
     - stage: Run stack build pixela
