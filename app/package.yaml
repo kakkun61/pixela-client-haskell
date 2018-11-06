@@ -1,5 +1,5 @@
 name:                pixela-cli
-version:             0.1.0.0
+version:             0.1.1.0
 github:              "kakkun61/pixela-client-haskell"
 homepage:            "https://github.com/kakkun61/pixela-client-haskell/tree/master/app"
 license:             BSD3
