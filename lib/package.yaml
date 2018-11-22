@@ -30,6 +30,7 @@ dependencies:
 - http-types
 - split
 - text
+- time
 - unordered-containers
 - uri-encode
 - vector

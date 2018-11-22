@@ -12,6 +12,7 @@ import           Options.Declarative
 import           Web.Pixela                 (Agreement (..), Config (token, userName), DisplayMode (..), Majority (..),
                                              fromParameter', newClient)
 import qualified Web.Pixela                 as P
+import Data.Time
 
 import           Paths_pixela_cli           (version)
 
@@ -144,7 +145,7 @@ setQuantity
   :: Arg "USER_NAME" String
   -> Arg "TOKEN" String
   -> Arg "GRAPH_ID" String
-  -> Arg "DATE" String
+  -> Arg "DATE" Day
   -> Arg "QUANTITY" String
   -> Cmd "set the quantity of the specified date" ()
 setQuantity userName' token' graphId date quantity =
@@ -156,7 +157,7 @@ getQuantity
   :: Arg "USER_NAME" String
   -> Arg "TOKEN" String
   -> Arg "GRAPH_ID" String
-  -> Arg "DATE" String
+  -> Arg "DATE" Day
   -> Cmd "get the quantity of the specified date" ()
 getQuantity userName' token' graphId date =
   liftIO $
@@ -168,7 +169,7 @@ updateQuantity
   :: Arg "USER_NAME" String
   -> Arg "TOKEN" String
   -> Arg "GRAPH_ID" String
-  -> Arg "DATE" String
+  -> Arg "DATE" Day
   -> Arg "QUANTITY" String
   -> Cmd "update the quantity of the specified date" ()
 updateQuantity userName' token' graphId date quantity =
@@ -200,7 +201,7 @@ deleteQuantity
   :: Arg "USER_NAME" String
   -> Arg "TOKEN" String
   -> Arg "GRAPH_ID" String
-  -> Arg "DATE" String
+  -> Arg "DATE" Day
   -> Cmd "update the quantity of the specified date" ()
 deleteQuantity userName' token' graphId date =
   liftIO $
@@ -247,3 +248,8 @@ deleteWebhook userName' token' hash =
   liftIO $
     newClient def { userName = get userName', token = get token' }
     >>= P.deleteWebhook (get hash)
+
+instance ArgRead Day where
+  argRead Nothing = Nothing
+  argRead (Just a) =
+    parseTimeM False defaultTimeLocale "%y%m%d" a

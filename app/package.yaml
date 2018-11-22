@@ -28,6 +28,7 @@ dependencies:
 - pixela
 - split
 - text
+- time
 
 executables:
   pixela:

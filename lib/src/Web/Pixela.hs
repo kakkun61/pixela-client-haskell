@@ -75,6 +75,7 @@ import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
 import           Network.HTTP.Types
 import qualified Network.URI.Encode         as URI
+import Data.Time
 
 import           Paths_pixela               (version)
 
@@ -200,7 +201,7 @@ instance ToParameter DisplayMode where
   toParameter DefaultMode = ""
 
 type Url = String
-type Date = String
+type Date = Day
 type Quantity = String
 
 data WebhookType = Increment | Decrement deriving (Show, Read, Eq)
@@ -390,7 +391,7 @@ getQuantityBSL :: GraphId -> Date -> Client -> IO BSL.ByteString
 getQuantityBSL graphId date (Client (Config ep _ userName' token') manager) =
   requestBSL
     GET
-    (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode date)
+    (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode (formatDay date))
     (Just token')
     Nothing
     manager
@@ -402,7 +403,7 @@ updateQuantity graphId date quantity (Client (Config ep _ userName' token') mana
   void $
     request
       PUT
-      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode date)
+      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode (formatDay date))
       (Just token')
       (Just $ Aeson.object ["quantity" .= quantity])
       manager
@@ -438,7 +439,7 @@ deleteQuantity graphId date (Client (Config ep _ userName' token') manager) =
   void $
     request
       DELETE
-      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode date)
+      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode (formatDay date))
       (Just token')
       Nothing
       manager
@@ -542,3 +543,6 @@ decodeJson responseBody' =
 (</>) :: (Semigroup p, IsString p) => p -> p -> p
 p </> q = p <> "/" <> q
 infixr 6 </>
+
+formatDay :: Day -> String
+formatDay = formatTime defaultTimeLocale "%y%d%m"

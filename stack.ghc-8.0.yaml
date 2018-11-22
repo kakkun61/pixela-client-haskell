@@ -5,4 +5,5 @@ packages:
 - lib
 
 extra-deps:
-- optparse-declarative-0.3.0@sha256:12d6a258b528e66fadf9d040447523b2a4ed376bed5e557a94e8148e9fba8c2b
+- github: kakkun61/optparse-declarative
+  commit: a9a9091a00f3db492fbb96f88bd9c920edd51ba7
