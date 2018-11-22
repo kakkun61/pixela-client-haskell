@@ -15,6 +15,7 @@ import           Options.Declarative
 import           Web.Pixela                 (Agreement (..), Config (token, userName), DisplayMode (..), Majority (..),
                                              fromParameter', newClient)
 import qualified Web.Pixela                 as P
+import Data.Time
 
 import           Paths_pixela_cli           (version)
 

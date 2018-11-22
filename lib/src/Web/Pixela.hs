@@ -76,6 +76,7 @@ import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
 import           Network.HTTP.Types
 import qualified Network.URI.Encode         as URI
+import Data.Time
 
 import           Paths_pixela               (version)
 
