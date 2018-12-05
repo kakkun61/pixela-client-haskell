@@ -68,6 +68,7 @@ import           Data.Semigroup             (Semigroup, (<>))
 import           Data.String
 import           Data.Text                  (Text)
 import qualified Data.Text                  as Text
+import           Data.Time
 import           Data.Typeable
 import qualified Data.Vector                as Vector
 import           Data.Version               (showVersion)
@@ -75,7 +76,6 @@ import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
 import           Network.HTTP.Types
 import qualified Network.URI.Encode         as URI
-import Data.Time
 
 import           Paths_pixela               (version)
 
