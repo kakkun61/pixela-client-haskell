@@ -7,4 +7,6 @@ pixela-cli.cabal
 *.iml
 .vscode
 
+TAGS
+
 token
