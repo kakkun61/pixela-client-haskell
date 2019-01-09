@@ -40,6 +40,7 @@ library:
   default-extensions: OverloadedStrings
   ghc-options:
   - -Wall
+  - -Wcompat
   - -fwarn-tabs
   - -fwarn-incomplete-record-updates
   - -fwarn-unused-do-bind

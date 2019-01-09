@@ -36,6 +36,7 @@ executables:
     source-dirs:         .
     ghc-options:
     - -Wall
+    - -Wcompat
     - -fwarn-tabs
     - -fwarn-incomplete-record-updates
     - -fwarn-unused-do-bind
