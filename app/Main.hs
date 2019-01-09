@@ -6,16 +6,17 @@ module Main where
 
 import           Control.Monad.IO.Class
 import qualified Data.ByteString.Lazy.Char8 as BSL
-import           Data.Default
+import           Data.Default.Class
 import           Data.List.Split            (splitOn)
 import qualified Data.Text.IO               as Text
 import           Data.Time
 import           Data.Version               (showVersion)
 import           Options.Declarative
-import           Web.Pixela                 (Agreement (..), Config (token, userName), DisplayMode (..), Majority (..),
+import           Web.Pixela                 (Agreement (..),
+                                             Config (token, userName),
+                                             DisplayMode (..), Majority (..),
                                              fromParameter', newClient)
 import qualified Web.Pixela                 as P
-import Data.Time
 
 import           Paths_pixela_cli           (version)
 

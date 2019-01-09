@@ -59,7 +59,7 @@ import           Data.Aeson                 ((.=))
 import qualified Data.Aeson                 as Aeson
 import qualified Data.ByteString.Char8      as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
-import           Data.Default
+import           Data.Default.Class
 import qualified Data.HashMap.Strict        as HashMap
 import           Data.Maybe                 (fromMaybe)
 #if __GLASGOW_HASKELL__ < 804
@@ -76,7 +76,6 @@ import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
 import           Network.HTTP.Types
 import qualified Network.URI.Encode         as URI
-import Data.Time
 
 import           Paths_pixela               (version)
 

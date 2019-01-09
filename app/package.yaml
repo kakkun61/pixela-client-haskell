@@ -23,7 +23,7 @@ description:         Pixela client CLI.
 dependencies:
 - base >= 4.7 && < 5
 - bytestring
-- data-default
+- data-default-class
 - optparse-declarative
 - pixela
 - split
