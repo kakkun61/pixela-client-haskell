@@ -1,6 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Main where
 
