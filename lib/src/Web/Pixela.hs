@@ -373,7 +373,7 @@ setQuantity graphId date quantity (Client (Config ep _ userName' token') manager
       (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId)
       (Just token')
       ( Just $ Aeson.object
-          [ "date" .= date
+          [ "date" .= formatDate date
           , "quantity" .= quantity
           ]
       )
@@ -391,7 +391,7 @@ getQuantityBSL :: GraphId -> Date -> Client -> IO BSL.ByteString
 getQuantityBSL graphId date (Client (Config ep _ userName' token') manager) =
   requestBSL
     GET
-    (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode (formatDay date))
+    (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode (formatDate date))
     (Just token')
     Nothing
     manager
@@ -403,7 +403,7 @@ updateQuantity graphId date quantity (Client (Config ep _ userName' token') mana
   void $
     request
       PUT
-      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode (formatDay date))
+      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode (formatDate date))
       (Just token')
       (Just $ Aeson.object ["quantity" .= quantity])
       manager
@@ -439,7 +439,7 @@ deleteQuantity graphId date (Client (Config ep _ userName' token') manager) =
   void $
     request
       DELETE
-      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode (formatDay date))
+      (ep </> "users" </> URI.encode userName' </> "graphs" </> URI.encode graphId </> URI.encode (formatDate date))
       (Just token')
       Nothing
       manager
@@ -544,5 +544,12 @@ decodeJson responseBody' =
 p </> q = p <> "/" <> q
 infixr 6 </>
 
-formatDay :: Day -> String
-formatDay = formatTime defaultTimeLocale "%y%d%m"
+formatDate :: Date -> String
+formatDate day =
+  let
+    (y, m, d) = toGregorian day
+    y' = show y
+    m' = (if m < 10 then "0" else "") <> show m
+    d' = (if d < 10 then "0" else "") <> show d
+  in
+    y' <> m' <> d'

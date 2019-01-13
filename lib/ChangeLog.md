@@ -1,5 +1,9 @@
 # Changelog for pixela
 
+## 0.3.1.0
+
+- Fix a date format bug
+
 ## 0.3.0.0
 
 ### Breaking Change
