@@ -33,18 +33,18 @@ jobs:
       script:
       - stack clean
       - stack --stack-yaml stack.ghc-8.2.yaml --no-terminal build pixela --fast
-    # - stage: Run stack --stack-yaml stack.ghc-8.2.yaml build pixela-cli
-    #   script:
-    #   - stack clean
-    #   - stack --stack-yaml stack.ghc-8.2.yaml --no-terminal build pixela-cli --fast
+    - stage: Run stack --stack-yaml stack.ghc-8.2.yaml build pixela-cli
+      script:
+      - stack clean
+      - stack --stack-yaml stack.ghc-8.2.yaml --no-terminal build pixela-cli --fast
     - stage: Run stack --stack-yaml stack.ghc-8.0.yaml build pixela
       script:
       - stack clean
       - stack --stack-yaml stack.ghc-8.0.yaml --no-terminal build pixela --fast
-    # - stage: Run stack --stack-yaml stack.ghc-8.0.yaml build pixela-cli
-    #   script:
-    #   - stack clean
-    #   - stack --stack-yaml stack.ghc-8.0.yaml --no-terminal build pixela-cli --fast
+    - stage: Run stack --stack-yaml stack.ghc-8.0.yaml build pixela-cli
+      script:
+      - stack clean
+      - stack --stack-yaml stack.ghc-8.0.yaml --no-terminal build pixela-cli --fast
 
 notifications:
   email: false
